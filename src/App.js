@@ -10,6 +10,7 @@ import Profile from './components/Profile';
 import Leaderboard from './components/Leaderboard';
 import AdminStats from './components/AdminStats';
 import MatchDetails from './components/MatchDetails';
+import UsporedbaIgraca from './components/UsporedbaIgraca';
 import Home from "./components/Home";
 import './App.css';
 
@@ -80,6 +81,7 @@ const App = () => {
                 {user.isAdmin && <Link to="/schedule">Raspored</Link>}
                 <Link to="/profile">Profil</Link>
                 <Link to="/leaderboard">Rang Lista</Link>
+                <Link to="/usporedba">Usporedba Igrača</Link>
                 {user.isAdmin && <Link to="/admin-stats">Admin Panel</Link>}
                 <button onClick={handleLogout}>Odjava</button>
               </div>
@@ -93,6 +95,7 @@ const App = () => {
                 <Route path="/profile/:email" component={Profile} /> {/* 📌 Koristi email kao parametar */}
                 <Route path="/match/:id" component={() => <MatchDetails user={user} />} />
                 <Route path="/leaderboard" component={Leaderboard} />
+                <Route path="/usporedba" component={UsporedbaIgraca} />
                 {user.isAdmin && <Route path="/admin-stats" component={() => <AdminStats user={user} />} />}
                 <Redirect to="/" />
               </Switch>
