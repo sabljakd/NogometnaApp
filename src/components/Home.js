@@ -20,6 +20,10 @@ const Home = () => {
           id: doc.id,
           ...doc.data(),
         }));
+    
+        // Sortiranje utakmica po datumu (najnovije prve)
+        matchList.sort((a, b) => new Date(b.date) - new Date(a.date));
+    
         setMatches(matchList);
       } catch (error) {
         console.error("❌ Greška pri dohvaćanju utakmica:", error);
