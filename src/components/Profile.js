@@ -1,33 +1,31 @@
 import React, { useState, useEffect } from 'react';
-import { db, doc, getDoc } from '../firebase';
+import { db, doc, onSnapshot } from '../firebase'; // 🔄 Importamo onSnapshot
 import { useParams } from 'react-router-dom';
 import { RadialBarChart, RadialBar, Legend, ResponsiveContainer } from 'recharts';
 import '../App.css';
 
 const Profile = ({ user }) => {
-  const { email } = useParams(); // ✅ Dohvaćamo email iz URL-a
+  const { email } = useParams();
   const [playerStats, setPlayerStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const playerRef = doc(db, "players", email || user?.email); // ✅ Ako nema emaila u URL-u, uzmi user.email
-        const playerSnap = await getDoc(playerRef);
+    if (!email && !user?.email) return; // Ako nema emaila, izađi
 
-        if (playerSnap.exists()) {
-          setPlayerStats(playerSnap.data());
-        } else {
-          console.warn("⚠ Igrač nije pronađen u Firestore-u!");
-        }
-      } catch (error) {
-        console.error("❌ Greška pri dohvaćanju statistike:", error);
-      } finally {
-        setLoading(false);
+    const playerRef = doc(db, "players", email || user?.email);
+
+    // 🔄 Postavljamo real-time slušatelja na dokument igrača
+    const unsubscribe = onSnapshot(playerRef, (playerSnap) => {
+      if (playerSnap.exists()) {
+        setPlayerStats(playerSnap.data());
+      } else {
+        console.warn("⚠ Igrač nije pronađen u Firestore-u!");
+        setPlayerStats(null);
       }
-    };
+      setLoading(false);
+    });
 
-    fetchStats();
+    return () => unsubscribe(); // ✅ Očisti slušatelja kad komponenta izađe
   }, [email, user]);
 
   if (loading) return <p> Učitavanje podataka...</p>;

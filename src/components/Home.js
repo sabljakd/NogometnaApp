@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { db, collection, getDocs } from "../firebase";
 import { useHistory } from "react-router-dom";
-import "../App.css";
+
+/* eslint-disable jsx-a11y/accessible-emoji */
 
 const Home = () => {
   const [matches, setMatches] = useState([]);
@@ -45,10 +46,10 @@ const Home = () => {
   // Funkcija za nasumični nogometni GIF
   const getRandomFootballMeme = () => {
     const memes = [
-      "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExajF0NGI5N2NjMHJmNW0xbG1qbW52NTBkcXJlamxlczJqMmVpbGlnOCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/kxUhZ0TY46X1Dk48ru/giphy.gif", 
-      "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExNjZrcTlvbzM2ZmZkempoM2lrM3g2dzVkcjB2NHM4dGhsNmhyMjVvcyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/i8Udr19doZnqEQTPxu/giphy.gif", 
-      "https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHpiOGozazk4a3Vndmlsa2l1b3NxY2gzNnNxeWlseG95dTd4ZzZ4aCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/8TY5Uw0CNztcwYuP1t/giphy.gif",  
-      "https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExeDg2NzFiMmFjZzNiYWl4eWZ3cWlld3BlcHgybjFiejg4YjJmOTBpciZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/dyuc5DfSUg1RGg8P3p/giphy.gif", 
+      "https://media1.giphy.com/media/kxUhZ0TY46X1Dk48ru/giphy.gif",
+      "https://media4.giphy.com/media/i8Udr19doZnqEQTPxu/giphy.gif",
+      "https://media0.giphy.com/media/8TY5Uw0CNztcwYuP1t/giphy.gif",
+      "https://media0.giphy.com/media/dyuc5DfSUg1RGg8P3p/giphy.gif",
     ];
     return memes[Math.floor(Math.random() * memes.length)];
   };
@@ -59,91 +60,157 @@ const Home = () => {
     setRandomGif(getRandomFootballMeme());
   };
 
+  // **INLINE CSS STILOVI**
+  const styles = {
+    container: {
+      maxWidth: "1000px",
+      margin: "auto",
+      padding: "20px",
+    },
+    matchGrid: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+      gap: "10px",
+    },
+    matchCard: {
+      background: "white",
+      padding: "10px",
+      borderRadius: "8px",
+      boxShadow: "0px 0px 5px rgba(0, 0, 0, 0.1)",
+      textAlign: "center",
+      cursor: "pointer",
+      fontSize: "14px",
+    },
+    playerGrid: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
+      gap: "8px",
+    },
+    playerCard: {
+      background: "white",
+      padding: "8px",
+      borderRadius: "8px",
+      boxShadow: "0px 0px 5px rgba(0, 0, 0, 0.1)",
+      textAlign: "center",
+      cursor: "pointer",
+      fontSize: "12px",
+    },
+    statsGrid: {
+      display: "flex",
+      justifyContent: "center",
+      gap: "10px",
+    },
+    statCard: {
+      background: "white",
+      padding: "12px",
+      borderRadius: "8px",
+      boxShadow: "0px 0px 5px rgba(0, 0, 0, 0.1)",
+      textAlign: "center",
+      flex: 1,
+      minWidth: "100px",
+    },
+    memeContainer: {
+      textAlign: "center",
+      marginTop: "10px",
+    },
+    memeImage: {
+      maxWidth: "100%",
+      height: "auto",
+      borderRadius: "8px",
+    },
+  };
+
   return (
-    <div className="container">
+    <div style={styles.container}>
       {/* UTAMICE */}
-      <h2>
-        <span role="img" aria-label="calendar">📅</span> Nadolazeće i Odigrane Utakmice
-      </h2>
-      <ul className="match-list">
+      <h2>📅 Nadolazeće i Odigrane Utakmice</h2>
+      <div style={styles.matchGrid}>
         {matches.length > 0 ? (
           matches.map((match) => (
-            <li key={match.id} className="match-item" onClick={() => history.push(`/match/${match.id}`)}>
+            <div
+              key={match.id}
+              style={styles.matchCard}
+              onClick={() => history.push(`/match/${match.id}`)}
+            >
               <p><strong>{match.date} - {match.time}</strong></p>
-              <p>
-                {match.teamA?.join(", ")}
-                <span role="img" aria-label="versus"> 🆚 </span>
-                {match.teamB?.join(", ")}
-              </p>
-              <p><span role="img" aria-label="location">📍</span> Lokacija: {match.location}</p>
-              <p><span role="img" aria-label="score">⚽</span> Rezultat: {match.scoreA} - {match.scoreB}</p>
-            </li>
+              <p>{match.teamA?.join(", ")} 🆚 {match.teamB?.join(", ")}</p>
+              <p>📍 {match.location}</p>
+              <p>⚽ {match.scoreA} - {match.scoreB}</p>
+            </div>
           ))
         ) : (
           <p>Nema dostupnih utakmica.</p>
         )}
-      </ul>
+      </div>
 
       {/* LISTA IGRAČA */}
-      <h2>
-        <span role="img" aria-label="players">👥</span> Lista Igrača
-      </h2>
-      <ul className="player-list">
+      <h2>👥 Lista Igrača</h2>
+      <div style={styles.playerGrid}>
         {players.length > 0 ? (
           players.map((player) => (
-            <li key={player.id} className="player-item" onClick={() => handlePlayerClick(player)}>
+            <div
+              key={player.id}
+              style={styles.playerCard}
+              onClick={() => handlePlayerClick(player)}
+            >
               <p>{player.name}</p>
-            </li>
+            </div>
           ))
         ) : (
           <p>Nema dostupnih igrača.</p>
         )}
-      </ul>
+      </div>
 
       {/* PRIKAZ STATISTIKE IGRAČA */}
       {selectedPlayer && (
-        <div className="player-stats">
+        <div>
           <h3>{selectedPlayer.name} - Statistika</h3>
-          <div className="stats-grid">
-            <div className="stat-card">
-              <span role="img" aria-label="goal">⚽</span>
+          <div style={styles.statsGrid}>
+            <div style={styles.statCard}>
+              <span>⚽</span>
               <h3>{selectedPlayer.goals || 0}</h3>
               <p>Golovi</p>
             </div>
-            <div className="stat-card">
-              <span role="img" aria-label="assist">🎯</span>
+            <div style={styles.statCard}>
+              <span>🎯</span>
               <h3>{selectedPlayer.assists || 0}</h3>
               <p>Asistencije</p>
             </div>
-            <div className="stat-card">
-              <span role="img" aria-label="games">🏆</span>
+            <div style={styles.statCard}>
+              <span>🏆</span>
               <h3>{selectedPlayer.matchesPlayed || 0}</h3>
               <p>Odigrane Utakmice</p>
             </div>
           </div>
 
-          <div className="stats-grid">
-            <div className="stat-card">
-              <span role="img" aria-label="average-goals">📊</span>
-              <h3>{((selectedPlayer.goals || 0) / (selectedPlayer.matchesPlayed || 1)).toFixed(2)}</h3>
+          {/* PROSJEK GOLOVA I ASISTENCIJA */}
+          <div style={styles.statsGrid}>
+            <div style={styles.statCard}>
+              <span>📊</span>
+              <h3>
+                {((selectedPlayer.goals || 0) / (selectedPlayer.matchesPlayed || 1)).toFixed(2)}
+              </h3>
               <p>Prosjek golova po utakmici</p>
             </div>
-            <div className="stat-card">
-              <span role="img" aria-label="average-assists">📊</span>
-              <h3>{((selectedPlayer.assists || 0) / (selectedPlayer.matchesPlayed || 1)).toFixed(2)}</h3>
+            <div style={styles.statCard}>
+              <span>📊</span>
+              <h3>
+                {((selectedPlayer.assists || 0) / (selectedPlayer.matchesPlayed || 1)).toFixed(2)}
+              </h3>
               <p>Prosjek asistencija po utakmici</p>
             </div>
           </div>
 
           {/* RANDOM GIF */}
-          <div className="meme-container">
-            
-            <img src={randomGif} alt="Football Meme" className="meme-image" />
+          <div style={styles.memeContainer}>
+            <img src={randomGif} alt="Football Meme" style={styles.memeImage} />
           </div>
         </div>
       )}
     </div>
   );
 };
+
+/* eslint-enable jsx-a11y/accessible-emoji */
 
 export default Home;

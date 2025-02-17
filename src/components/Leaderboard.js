@@ -42,44 +42,57 @@ const Leaderboard = () => {
 
   const calculateStats = (playersList, matchesList) => {
     return playersList.map(player => {
-      let wins = 0, draws = 0, losses = 0, goalsFor = 0, goalsAgainst = 0, mvpCount = 0;
+        let wins = 0, draws = 0, losses = 0, goalsFor = 0, goalsAgainst = 0;
+        let matchesPlayed = 0; // ✅ Brojat će se svi igrači koji su igrali
 
-      matchesList.forEach(match => {
-        if (match.teamA.includes(player.name) || match.teamB.includes(player.name)) {
-          let isTeamA = match.teamA.includes(player.name);
-          let teamGoals = isTeamA ? match.scoreA : match.scoreB;
-          let opponentGoals = isTeamA ? match.scoreB : match.scoreA;
+        matchesList.forEach(match => {
+            if (!match.teamA || !match.teamB) {
+                console.warn(`⚠ Upozorenje: Utakmica bez timova! (ID: ${match.id})`);
+                return;
+            }
 
-          goalsFor += teamGoals;
-          goalsAgainst += opponentGoals;
+            const isInTeamA = match.teamA.includes(player.name);
+            const isInTeamB = match.teamB.includes(player.name);
+            
+            if (isInTeamA || isInTeamB) {
+                matchesPlayed++; // ✅ Svaka utakmica se broji, čak i ako nema golova/asistencija
 
-          if (teamGoals > opponentGoals) wins++;
-          else if (teamGoals < opponentGoals) losses++;
-          else draws++;
+                let isTeamA = isInTeamA;
+                let teamGoals = isTeamA ? match.scoreA : match.scoreB;
+                let opponentGoals = isTeamA ? match.scoreB : match.scoreA;
 
-          if (match.mvp === player.name) mvpCount++;
-        }
-      });
+                goalsFor += teamGoals;
+                goalsAgainst += opponentGoals;
 
-      const totalGames = wins + draws + losses;
-      const successRate = totalGames > 0 ? ((wins / totalGames) * 100).toFixed(1) + "%" : "0%";
-      const points = wins * 3 + draws;
-      const successPoints = ((parseFloat(successRate) / 100) * points).toFixed(1);
+                if (teamGoals > opponentGoals) wins++;
+                else if (teamGoals < opponentGoals) losses++;
+                else draws++;
+            }
+        });
 
-      return {
-        ...player,
-        wins,
-        draws,
-        losses,
-        matchesPlayed: totalGames,
-        points,
-        goalDifference: goalsFor - goalsAgainst,
-        mvpMatches: mvpCount,
-        successRate,
-        successPoints,
-      };
+        console.log(`📌 ${player.name} - Odigrane utakmice: ${matchesPlayed}`);
+
+        const successRate = matchesPlayed > 0 ? ((wins / matchesPlayed) * 100).toFixed(1) + "%" : "0%";
+        const points = wins * 3 + draws;
+        const successPoints = ((parseFloat(successRate) / 100) * points).toFixed(1);
+
+        return {
+            ...player,
+            wins,
+            draws,
+            losses,
+            matchesPlayed, // ✅ Svi igrači sada imaju tačan broj utakmica
+            points,
+            goalsFor,
+            goalsAgainst,
+            goalDifference: goalsFor - goalsAgainst,
+            successRate,
+            successPoints,
+        };
     });
-  };
+};
+
+
 
   const sortLeaderboard = useCallback((playersList, type) => {
     const sorted = [...playersList].sort((a, b) => (b[type] || 0) - (a[type] || 0));
@@ -95,9 +108,22 @@ const Leaderboard = () => {
 
   const findMVP = (playersList) => {
     if (playersList.length === 0) return;
-    const topPlayer = playersList.reduce((prev, current) => (prev.mvpMatches > current.mvpMatches ? prev : current), playersList[0]);
-    setMvp(topPlayer);
-  };
+
+    let bestMvp = null;
+    let maxMvpPoints = -1;
+
+    playersList.forEach(player => {
+        let mvpPoints = (player.goals || 0) * 5 + (player.assists || 0) * 3 + (player.wins || 0) * 2;
+
+        if (mvpPoints > maxMvpPoints) {
+            maxMvpPoints = mvpPoints;
+            bestMvp = player;
+        }
+    });
+
+    setMvp(bestMvp);
+};
+
 
   return (
     <div className="leaderboard-container">
@@ -106,14 +132,14 @@ const Leaderboard = () => {
       </h2>
   
       {/* MVP SEZONE */}
-      {mvp && (
-        <div className="mvp-box">
-          <h3>
-            MVP Sezone: {mvp.name} - {mvp.mvpMatches || 0} MVP termina
-            <span role="img" aria-label="medal"> 🥇</span>
-          </h3>
-        </div>
-      )}
+{mvp && (
+  <div className="mvp-box">
+    <h3>
+      MVP Sezone: {mvp.name} - {((mvp.goals || 0) * 5 + (mvp.assists || 0) * 3 + (mvp.wins || 0) * 2)} POINTS
+      <span role="img" aria-label="medal"> 🥇</span>
+    </h3>
+  </div>
+)}
   
       {/* SORTIRANJE */}
       <div className="sort-buttons">
@@ -135,7 +161,6 @@ const Leaderboard = () => {
               <th>Uspješnost x Bodovi</th>
               <th>Uspješnost</th>
               <th>Bodovi</th>
-              <th>MVP Termina</th>
               <th>Gol Razlika</th>
               <th>Post. Golovi</th>
               <th>Prim. Golovi</th>
@@ -156,10 +181,9 @@ const Leaderboard = () => {
                   <td>{player.successPoints || 0}</td>
                   <td>{player.successRate || "0%"}</td>
                   <td>{player.points || 0}</td>
-                  <td>{player.mvpMatches || 0}</td>
-                  <td>{player.goalDifference || 0}</td>
-                  <td>{player.goals || 0}</td>
-                  <td>{player.concededGoals || 0}</td>
+                  <td>{player.goalDifference || 0}</td> {/* ✅ Gol razlika - Sada mora raditi */}
+                  <td>{player.goalsFor || 0}</td> {/* ✅ Postignuti golovi */}
+                  <td>{player.goalsAgainst || 0}</td> {/* ✅ Primljeni golovi */}
                   <td>{player.wins || 0}</td>
                   <td>{player.draws || 0}</td>
                   <td>{player.losses || 0}</td>
