@@ -73,7 +73,7 @@ const Leaderboard = () => {
         console.log(`📌 ${player.name} - Odigrane utakmice: ${matchesPlayed}`);
 
         const successRate = matchesPlayed > 0 ? ((wins / matchesPlayed) * 100).toFixed(1) + "%" : "0%";
-        const points = wins * 3 + draws;
+        const points = wins * 3 + draws * 2 + losses;
         const successPoints = ((parseFloat(successRate) / 100) * points).toFixed(1);
 
         return {
@@ -135,7 +135,7 @@ const Leaderboard = () => {
 {mvp && (
   <div className="mvp-box">
     <h3>
-      MVP Sezone: {mvp.name} - {((mvp.goals || 0) * 5 + (mvp.assists || 0) * 3 + (mvp.wins || 0) * 2)} POINTS
+      MVP Sezone: {mvp.name} - {((mvp.goals || 0) * 2 + (mvp.assists || 0) * 1 + (mvp.wins || 0) * 5)} POINTS
       <span role="img" aria-label="medal"> 🥇</span>
     </h3>
   </div>
