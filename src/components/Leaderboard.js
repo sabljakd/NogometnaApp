@@ -113,7 +113,11 @@ const Leaderboard = () => {
     let maxMvpPoints = -1;
 
     playersList.forEach(player => {
-        let mvpPoints = (player.goals || 0) * 2 + (player.assists || 0) * 1 + (player.wins || 0) * 5;
+        let mvpPoints = 
+            (player.goals || 0) * 1 + 
+            (player.assists || 0) * 0.5 + 
+            (player.wins || 0) * 3 + 
+            (player.goalDifference || 0) * 0.5;
 
         if (mvpPoints > maxMvpPoints) {
             maxMvpPoints = mvpPoints;
@@ -135,7 +139,12 @@ const Leaderboard = () => {
 {mvp && (
   <div className="mvp-box">
     <h3>
-      MVP Sezone: {mvp.name} - {((mvp.goals || 0) * 2 + (mvp.assists || 0) * 1 + (mvp.wins || 0) * 5)} POINTS
+      MVP Sezone: {mvp.name} - {(
+        (mvp.goals || 0) * 1 + 
+        (mvp.assists || 0) * 0.5 + 
+        (mvp.wins || 0) * 3 + 
+        (mvp.goalDifference || 0) * 0.5
+      ).toFixed(1)} POINTS
       <span role="img" aria-label="medal"> 🥇</span>
     </h3>
   </div>
