@@ -113,7 +113,7 @@ const Leaderboard = () => {
     let maxMvpPoints = -1;
 
     playersList.forEach(player => {
-        let mvpPoints = (player.goals || 0) * 5 + (player.assists || 0) * 3 + (player.wins || 0) * 2;
+        let mvpPoints = (player.goals || 0) * 2 + (player.assists || 0) * 1 + (player.wins || 0) * 5;
 
         if (mvpPoints > maxMvpPoints) {
             maxMvpPoints = mvpPoints;
