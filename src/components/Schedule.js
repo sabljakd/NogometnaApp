@@ -1,9 +1,8 @@
+// ✅ Schedule.js (IZMIJENJENO)
 import React, { useState, useEffect } from 'react';
 import AdminPanel from './AdminPanel';
 import { db, collection, addDoc, onSnapshot, deleteDoc, doc } from '../firebase';
 import { Link } from 'react-router-dom';
-
-/* eslint-disable jsx-a11y/accessible-emoji */
 
 const Schedule = ({ user }) => {
   const [matches, setMatches] = useState([]);
@@ -27,7 +26,7 @@ const Schedule = ({ user }) => {
 
   const deleteMatch = async (id) => {
     if (!window.confirm("Jeste li sigurni da želite obrisati ovu utakmicu?")) return;
-    
+
     try {
       await deleteDoc(doc(db, "matches", id));
       alert("Termin obrisan!");
@@ -40,7 +39,6 @@ const Schedule = ({ user }) => {
     <div style={styles.container}>
       <h2 style={styles.heading}>⚽ Raspored Utakmica</h2>
 
-      {/* Samo admin može dodavati termine */}
       {user && user.isAdmin && <AdminPanel user={user} addMatch={addMatch} />}
 
       <div style={styles.matchList}>
@@ -51,18 +49,15 @@ const Schedule = ({ user }) => {
                 <h3 style={styles.matchTitle}>📅 {match.date} - ⏰ {match.time}</h3>
                 <p><strong>📍 Lokacija:</strong> {match.location}</p>
                 <p><strong>👥 Igrači:</strong> {match.players?.join(", ") || "Nema prijavljenih"}</p>
+                <p><strong>📆 Tip dana:</strong> {match.dayType || "N/A"}</p>
               </div>
 
               <div style={styles.buttonGroup}>
                 {user && user.isAdmin && (
-                  <button onClick={() => deleteMatch(match.id)} style={styles.deleteButton}>
-                    🗑️ Obriši
-                  </button>
+                  <button onClick={() => deleteMatch(match.id)} style={styles.deleteButton}>🗑️ Obriši</button>
                 )}
                 {user && user.isAdmin && (
-                  <Link to={`/match/${match.id}`} style={styles.editLink}>
-                    ✏️ Uredi utakmicu
-                  </Link>
+                  <Link to={`/match/${match.id}`} style={styles.editLink}>✏️ Uredi utakmicu</Link>
                 )}
               </div>
             </div>
@@ -104,9 +99,6 @@ const styles = {
     boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.1)",
     transition: "0.3s ease-in-out",
   },
-  matchCardHover: {
-    background: "#e9ecef",
-  },
   matchInfo: {
     flex: 1,
   },
@@ -127,10 +119,6 @@ const styles = {
     cursor: "pointer",
     borderRadius: "5px",
     fontWeight: "bold",
-    transition: "0.3s ease-in-out",
-  },
-  deleteButtonHover: {
-    background: "#c82333",
   },
   editLink: {
     background: "#007bff",
@@ -139,10 +127,6 @@ const styles = {
     padding: "8px 12px",
     borderRadius: "5px",
     fontWeight: "bold",
-    transition: "0.3s ease-in-out",
-  },
-  editLinkHover: {
-    background: "#0056b3",
   },
   noMatches: {
     textAlign: "center",
@@ -151,7 +135,5 @@ const styles = {
     marginTop: "20px",
   },
 };
-
-/* eslint-enable jsx-a11y/accessible-emoji */
 
 export default Schedule;

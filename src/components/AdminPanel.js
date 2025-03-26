@@ -5,6 +5,7 @@ import '../App.css';
 /* eslint-disable jsx-a11y/accessible-emoji */
 
 const AdminPanel = ({ user }) => {
+  const [dayType, setDayType] = useState('utorak'); // default
   const [players, setPlayers] = useState([]);
   const [selectedPlayer, setSelectedPlayer] = useState('');
   const [goals, setGoals] = useState(0);
@@ -52,7 +53,9 @@ const AdminPanel = ({ user }) => {
     }
 
     try {
-      await addDoc(collection(db, "matches"), { date, time, location, players: [] });
+      await addDoc(collection(db, "matches"), {
+        date, time, location, players: [], dayType,
+      });
       alert("Utakmica dodana!");
       setDate('');
       setTime('');
@@ -100,6 +103,13 @@ const AdminPanel = ({ user }) => {
           <div>
             <label>📍 Lokacija:</label>
             <input type="text" placeholder="Lokacija" value={location} onChange={(e) => setLocation(e.target.value)} required />
+          </div>
+          <div>
+            <label>📆 Dan:</label>
+            <select value={dayType} onChange={(e) => setDayType(e.target.value)}>
+            <option value="utorak">Utorak</option>
+            <option value="petak">Petak</option>
+            </select>
           </div>
           <button type="submit" className="add-match-btn">Dodaj utakmicu</button>
         </form>
