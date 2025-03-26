@@ -1,9 +1,8 @@
+// ✅ MatchDetails.js (izmijenjeno spremanje statistike po danima)
 import React, { useState, useEffect } from 'react';
 import { db, collection, doc, getDoc, getDocs, updateDoc } from '../firebase';
 import { useParams, useHistory } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-
-/* eslint-disable jsx-a11y/accessible-emoji */
 
 const MatchDetails = ({ user }) => {
   const { id } = useParams();
@@ -25,7 +24,6 @@ const MatchDetails = ({ user }) => {
         if (matchSnap.exists()) {
           const matchData = matchSnap.data();
           setMatch({ id: matchSnap.id, ...matchData });
-
           setTeamA(matchData.teamA || []);
           setTeamB(matchData.teamB || []);
           setScoreA(matchData.scoreA || 0);
@@ -64,58 +62,80 @@ const MatchDetails = ({ user }) => {
   const handleAddToTeam = (team, playerId) => {
     const player = players.find(p => p.id === playerId);
     if (!player) return;
-
-    if (team === 'A' && !teamA.includes(player.name)) {
-      setTeamA([...teamA, player.name]);
-    } else if (team === 'B' && !teamB.includes(player.name)) {
-      setTeamB([...teamB, player.name]);
-    }
+    if (team === 'A' && !teamA.includes(player.name)) setTeamA([...teamA, player.name]);
+    else if (team === 'B' && !teamB.includes(player.name)) setTeamB([...teamB, player.name]);
   };
 
   const handleSaveMatch = async () => {
     try {
-        const matchRef = doc(db, "matches", id);
-        await updateDoc(matchRef, {
-            teamA: teamA,
-            teamB: teamB,
-            scoreA: parseInt(scoreA),
-            scoreB: parseInt(scoreB),
-            stats
-        });
+      const matchRef = doc(db, "matches", id);
+      await updateDoc(matchRef, {
+        teamA,
+        teamB,
+        scoreA: parseInt(scoreA),
+        scoreB: parseInt(scoreB),
+        stats
+      });
 
-        const playerSnapshot = await getDocs(collection(db, "players"));
+      const matchSnap = await getDoc(matchRef);
+      const { dayType } = matchSnap.data();
+      const playerSnapshot = await getDocs(collection(db, "players"));
 
-        for (const playerDoc of playerSnapshot.docs) {
-            const playerRef = doc(db, "players", playerDoc.id);
-            const playerData = playerDoc.data();
+      for (const playerDoc of playerSnapshot.docs) {
+        const playerRef = doc(db, "players", playerDoc.id);
+        const playerData = playerDoc.data();
+        const playerName = playerData.name;
 
-            const playerName = playerData.name;
+        const isInTeamA = teamA.includes(playerName);
+        const isInTeamB = teamB.includes(playerName);
 
-            // Provjeri je li igrač sudjelovao u utakmici
-            const isInTeamA = teamA.includes(playerName);
-            const isInTeamB = teamB.includes(playerName);
+        if (isInTeamA || isInTeamB) {
+          const goals = stats[playerName]?.goals || 0;
+          const assists = stats[playerName]?.assists || 0;
 
-            if (isInTeamA || isInTeamB) {
-                const goals = stats[playerName]?.goals || 0;
-                const assists = stats[playerName]?.assists || 0;
-                const currentMatchesPlayed = playerData.matchesPlayed || 0;
+          const prevStats = playerData.stats?.[dayType] || {
+            goals: 0,
+            assists: 0,
+            matchesPlayed: 0
+          };
 
-                await updateDoc(playerRef, {
-                    matchesPlayed: currentMatchesPlayed + 1, // ✅ Dodaj odigranu utakmicu, čak i ako je 0 golova/asistencija
-                    goals: (playerData.goals || 0) + goals,
-                    assists: (playerData.assists || 0) + assists
-                });
+          const updatedStats = {
+            goals: prevStats.goals + goals,
+            assists: prevStats.assists + assists,
+            matchesPlayed: prevStats.matchesPlayed + 1
+          };
 
-                console.log(`✅ Ažurirano: ${playerName} - +1 utakmica`);
-            }
+          await updateDoc(playerRef, {
+            [`stats.${dayType}`]: updatedStats
+          });
+
+          console.log(`✅ ${playerName} → ${dayType.toUpperCase()}: +1 utakmica, +${goals} golova, +${assists} asist.`);
         }
+      }
 
-        alert("Utakmica i statistika igrača su ažurirani!");
+      alert("Utakmica i statistika su ažurirani!");
     } catch (error) {
-        console.error("❌ Greška pri spremanju utakmice:", error);
+      console.error("❌ Greška pri spremanju:", error);
     }
-};
+  };
 
+  const styles = {
+    container: {
+      maxWidth: "900px",
+      margin: "30px auto",
+      padding: "20px",
+      background: "#fff",
+      borderRadius: "10px",
+      boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+      textAlign: "center",
+    },
+    heading: { color: "#007bff", marginBottom: "15px" },
+    formRow: { display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap" },
+    select: { padding: "8px", borderRadius: "5px", border: "1px solid #ccc", width: "180px" },
+    input: { padding: "10px", width: "80px", fontSize: "16px", textAlign: "center", borderRadius: "5px", border: "1px solid #ccc" },
+    statContainer: { margin: "10px 0" },
+    button: { backgroundColor: "#007bff", color: "white", padding: "12px 20px", fontSize: "16px", borderRadius: "8px", border: "none", cursor: "pointer" }
+  };
 
   return (
     <div style={styles.container}>
@@ -125,31 +145,26 @@ const MatchDetails = ({ user }) => {
           <p><strong>📅 Datum:</strong> {match.date}</p>
           <p><strong>⏰ Vrijeme:</strong> {match.time}</p>
           <p><strong>📍 Lokacija:</strong> {match.location}</p>
+          <p><strong>📆 Dan:</strong> {match.dayType}</p>
 
           {user && user.isAdmin && (
             <>
-              <h3>Dodaj igrače u timove</h3>
               <div style={styles.formRow}>
                 <label>Tim A:</label>
                 <select onChange={(e) => handleAddToTeam('A', e.target.value)} style={styles.select}>
                   <option value="">Odaberi igrača</option>
-                  {players.map(player => (
-                    <option key={player.id} value={player.id}>{player.name}</option>
-                  ))}
+                  {players.map(player => <option key={player.id} value={player.id}>{player.name}</option>)}
                 </select>
 
                 <label>Tim B:</label>
                 <select onChange={(e) => handleAddToTeam('B', e.target.value)} style={styles.select}>
                   <option value="">Odaberi igrača</option>
-                  {players.map(player => (
-                    <option key={player.id} value={player.id}>{player.name}</option>
-                  ))}
+                  {players.map(player => <option key={player.id} value={player.id}>{player.name}</option>)}
                 </select>
               </div>
 
               <h3>Tim A</h3>
               <ul>{teamA.map((player, index) => <li key={index}>{player}</li>)}</ul>
-
               <h3>Tim B</h3>
               <ul>{teamB.map((player, index) => <li key={index}>{player}</li>)}</ul>
 
@@ -197,94 +212,5 @@ const MatchDetails = ({ user }) => {
     </div>
   );
 };
-
-const styles = {
-  container: {
-    maxWidth: "900px",
-    margin: "30px auto",
-    padding: "20px",
-    background: "#fff",
-    borderRadius: "10px",
-    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-    textAlign: "center",
-  },
-  heading: {
-    textAlign: "center",
-    color: "#007bff",
-    marginBottom: "15px",
-  },
-  formRow: {
-    display: "flex",
-    gap: "10px",
-    alignItems: "center",
-    justifyContent: "center",
-    flexWrap: "wrap",
-    marginBottom: "15px",
-  },
-  select: {
-    padding: "8px",
-    borderRadius: "5px",
-    border: "1px solid #ccc",
-    width: "180px",
-    textAlign: "center",
-  },
-  teamList: {
-    listStyle: "none",
-    padding: "0",
-    margin: "10px 0",
-    background: "#f8f9fa",
-    borderRadius: "8px",
-    padding: "10px",
-    minHeight: "40px",
-  },
-  scoreContainer: {
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    gap: "10px",
-    marginBottom: "20px",
-  },
-  scoreDivider: {
-    fontSize: "20px",
-    fontWeight: "bold",
-  },
-  input: {
-    padding: "10px",
-    width: "80px",
-    fontSize: "16px",
-    textAlign: "center",
-    borderRadius: "5px",
-    border: "1px solid #ccc",
-  },
-  statsContainer: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-    gap: "10px",
-    marginBottom: "20px",
-  },
-  statCard: {
-    background: "#f8f9fa",
-    padding: "12px",
-    borderRadius: "8px",
-    boxShadow: "0px 2px 6px rgba(0, 0, 0, 0.1)",
-    textAlign: "center",
-  },
-  button: {
-    backgroundColor: "#007bff",
-    color: "white",
-    padding: "12px 20px",
-    fontSize: "16px",
-    borderRadius: "8px",
-    border: "none",
-    cursor: "pointer",
-    transition: "0.3s",
-  },
-  buttonHover: {
-    backgroundColor: "#0056b3",
-  },
-};
-
-
-/* eslint-enable jsx-a11y/accessible-emoji */
 
 export default MatchDetails;
