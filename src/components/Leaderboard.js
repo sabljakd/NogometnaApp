@@ -168,6 +168,7 @@ const Leaderboard = () => {
 
 
       <div style={{ overflowX: "auto" }}>
+      <div className="scroll-container">
         <table className="leaderboard-table">
           <thead>
             <tr>
@@ -199,6 +200,8 @@ const Leaderboard = () => {
             )}
           </tbody>
         </table>
+        </div>
+
 
         {sortedPlayers.length > 0 && (
   <div className="mvp-table">
