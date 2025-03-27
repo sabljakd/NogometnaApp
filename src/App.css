@@ -582,12 +582,11 @@ body {
     width: 100%;
   }
 
-  .leaderboard-table {
-    font-size: 13px;
-    min-width: 1000px;
-    width: 100%;
-    border-collapse: collapse;
-  }
+.leaderboard-table {
+  font-size: 13px;
+  min-width: 1000px;
+  width: max-content;
+}
 
   /* Maknuti lomljenje tablice u kartice */
   .leaderboard-table thead {
