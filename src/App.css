@@ -567,7 +567,7 @@ body {
 
 
 /* 📱 Responsive Mobile Styles */
-@media screen and (max-width: 200px) {
+@media screen and (max-width: 500px) {
   .container, .admin-container {
     padding: 10px !important;
   }
@@ -593,12 +593,6 @@ body {
     display: table-header-group;
   }
 
-  .leaderboard-table tr,
-  .leaderboard-table td {
-    display: table-row;
-    text-align: center;
-    padding: 8px;
-  }
 
   .leaderboard-table tr,
   .leaderboard-table td {
