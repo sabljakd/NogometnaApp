@@ -594,7 +594,7 @@ body {
   }
 
 
-  .leaderboard-table tr,
+  .leaderboard-table th,
   .leaderboard-table td {
     white-space: nowrap; /* 🔑 Sprječava da se sadržaj lomi u 2 reda */
     padding: 8px;
