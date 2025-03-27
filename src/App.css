@@ -134,7 +134,6 @@ body {
   padding: 20px;
   border-radius: 12px;
   box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
-  overflow-x: auto;
   overflow-y: visible; /* Omogućava da tablica bude vidljiva */
 }
 
