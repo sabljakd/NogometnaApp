@@ -167,7 +167,7 @@ const Leaderboard = () => {
       )}
 
 
-      <div style={{ overflowX: "auto" }}>
+      
       <div className="scroll-container">
         <table className="leaderboard-table">
           <thead>
@@ -225,7 +225,7 @@ const Leaderboard = () => {
   </div>
 )}
       </div>
-    </div>
+    
   );
 };
 
