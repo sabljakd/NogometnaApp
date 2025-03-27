@@ -39,6 +39,26 @@ const Leaderboard = () => {
     applyFilter();
   }, [dayFilter]);
 
+  const getTopMVPs = (playersList) => {
+    return [...playersList]
+      .map(player => {
+        const goals = Number(player.goals) || 0;
+        const assists = Number(player.assists) || 0;
+        const wins = Number(player.wins) || 0;
+        const goalDiff = Number(player.goalDifference) || 0;
+  
+        const mvpPoints = goals + assists * 0.5 + wins * 3 + goalDiff * 0.5;
+  
+        return {
+          ...player,
+          mvpPoints: mvpPoints.toFixed(1)
+        };
+      })
+      .sort((a, b) => b.mvpPoints - a.mvpPoints)
+      
+  };
+  
+
   const calculateStats = (playersList, matchesList) => {
     return playersList.map(player => {
       let wins = 0, draws = 0, losses = 0, goalsFor = 0, goalsAgainst = 0;
@@ -116,6 +136,8 @@ const Leaderboard = () => {
     setMvp(bestMvp);
   };
 
+  
+
   return (
     <div className="leaderboard-container">
       <h2>🏆 Rang Lista Igrača</h2>
@@ -143,6 +165,7 @@ const Leaderboard = () => {
           ).toFixed(1)} POINTS 🥇</h3>
         </div>
       )}
+
 
       <div style={{ overflowX: "auto" }}>
         <table className="leaderboard-table">
@@ -176,6 +199,28 @@ const Leaderboard = () => {
             )}
           </tbody>
         </table>
+
+        {sortedPlayers.length > 0 && (
+  <div className="mvp-table">
+    <h3>🏅 Top MVP Igrači</h3>
+    <table className="leaderboard-table" style={{ maxWidth: "600px" }}>
+      <thead>
+        <tr>
+          <th>#</th><th>Igrač</th><th>MVP Bodovi</th>
+        </tr>
+      </thead>
+      <tbody>
+        {getTopMVPs(sortedPlayers).map((player, index) => (
+          <tr key={player.id}>
+            <td>{index + 1}</td>
+            <td>{player.name}</td>
+            <td>{player.mvpPoints}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+)}
       </div>
     </div>
   );
