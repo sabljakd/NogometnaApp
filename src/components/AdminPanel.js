@@ -5,7 +5,6 @@ import '../App.css';
 /* eslint-disable jsx-a11y/accessible-emoji */
 
 const AdminPanel = ({ user }) => {
-  const [dayType, setDayType] = useState('utorak'); // default
   const [players, setPlayers] = useState([]);
   const [selectedPlayer, setSelectedPlayer] = useState('');
   const [goals, setGoals] = useState(0);
@@ -53,9 +52,19 @@ const AdminPanel = ({ user }) => {
     }
 
     try {
-      await addDoc(collection(db, "matches"), {
-        date, time, location, players: [], dayType,
-      });
+      
+    const dayOfWeek = new Date(date).toLocaleDateString('hr-HR', {
+      weekday: 'long'
+    }).toLowerCase();
+
+    await addDoc(collection(db, "matches"), {
+      date,
+      time,
+      location,
+      day: dayOfWeek,
+      players: []
+    });
+    
       alert("Utakmica dodana!");
       setDate('');
       setTime('');
@@ -84,6 +93,91 @@ const AdminPanel = ({ user }) => {
     }
   };
 
+  
+  const rebuildPlayerDailyStats = async () => {
+    try {
+      const matchesSnapshot = await getDocs(collection(db, "matches"));
+      const playersSnapshot = await getDocs(collection(db, "players"));
+
+      const statsMap = {};
+
+      matchesSnapshot.forEach((matchDoc) => {
+        const matchData = matchDoc.data();
+        const playerStats = matchData.stats || {};
+        const teamA = matchData.teamA || [];
+        const teamB = matchData.teamB || [];
+        const allPlayers = [...new Set([...teamA, ...teamB])];
+
+        const dayName = new Date(matchData.date).toLocaleDateString('hr-HR', {
+          weekday: 'long'
+        }).toLowerCase();
+
+        allPlayers.forEach((playerName) => {
+          if (!statsMap[playerName]) {
+            statsMap[playerName] = {};
+          }
+
+          if (!statsMap[playerName][dayName]) {
+            statsMap[playerName][dayName] = { goals: 0, assists: 0, matchesPlayed: 0 };
+          }
+
+          const goals = Number(playerStats[playerName]?.goals) || 0;
+          const assists = Number(playerStats[playerName]?.assists) || 0;          
+
+          statsMap[playerName][dayName].goals += goals;
+          statsMap[playerName][dayName].assists += assists;
+          
+          statsMap[playerName][dayName].matchesPlayed += 1;
+        });
+      });
+
+      for (const playerDoc of playersSnapshot.docs) {
+        const playerRef = doc(db, "players", playerDoc.id);
+        const name = playerDoc.data().name;
+
+        const dailyStats = statsMap[name] || {};
+
+        await updateDoc(playerRef, {
+          stats: dailyStats
+        });
+
+        console.log(`📅 Statistika po danima ažurirana za ${name}`);
+      }
+
+      alert("📊 Statistika po danima uspješno ažurirana!");
+    } catch (error) {
+      console.error("❌ Greška pri ažuriranju dnevne statistike:", error);
+    }
+  };
+
+  const rebuildMatchDays = async () => {
+    try {
+      const matchesSnapshot = await getDocs(collection(db, "matches"));
+  
+      for (const matchDoc of matchesSnapshot.docs) {
+        const matchData = matchDoc.data();
+        const matchRef = doc(db, "matches", matchDoc.id);
+  
+        if (matchData.date) {
+          const day = new Date(matchData.date).toLocaleDateString("hr-HR", {
+            weekday: "long",
+          }).toLowerCase();
+  
+          await updateDoc(matchRef, {
+            day: day
+          });
+  
+          console.log(`✅ Match ${matchDoc.id} - day: ${day}`);
+        }
+      }
+  
+      alert("📅 Dan u tjednu (day) uspješno dodan svim utakmicama!");
+    } catch (error) {
+      console.error("❌ Greška prilikom dodavanja day polja u matches:", error);
+    }
+  };
+  
+
   return (
     <div className="admin-container">
       <h2>⚙ Admin Panel</h2>
@@ -103,13 +197,6 @@ const AdminPanel = ({ user }) => {
           <div>
             <label>📍 Lokacija:</label>
             <input type="text" placeholder="Lokacija" value={location} onChange={(e) => setLocation(e.target.value)} required />
-          </div>
-          <div>
-            <label>📆 Dan:</label>
-            <select value={dayType} onChange={(e) => setDayType(e.target.value)}>
-            <option value="utorak">Utorak</option>
-            <option value="petak">Petak</option>
-            </select>
           </div>
           <button type="submit" className="add-match-btn">Dodaj utakmicu</button>
         </form>
@@ -143,6 +230,13 @@ const AdminPanel = ({ user }) => {
           <button onClick={updateStats} className="update-stats-btn">Spremi promjene</button>
         </div>
         <button className="reset-button" onClick={resetAllStats}>🗑 Resetiraj sve statistike</button>
+        <button className="rebuild-button" onClick={rebuildPlayerDailyStats}>
+          ♻️ Rebuild statistike po danima
+        </button>
+        <button onClick={rebuildMatchDays}>
+  🔁 Dodaj dan (day) svim utakmicama
+</button>
+
       </div>
 
       {/* Pregled svih igrača */}

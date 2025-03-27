@@ -24,7 +24,9 @@ const Leaderboard = () => {
         const matchesData = matchesSnapshot.docs.map(doc => doc.data());
 
         const filteredMatches = matchesData.filter(match =>
-          dayFilter === "sve" ? true : match.dayType === dayFilter
+          dayFilter === "sve" ? true : match.day === dayFilter
+
+          
         );
 
         const updatedPlayers = calculateStats(playersData, filteredMatches);
@@ -40,11 +42,16 @@ const Leaderboard = () => {
   const calculateStats = (playersList, matchesList) => {
     return playersList.map(player => {
       let wins = 0, draws = 0, losses = 0, goalsFor = 0, goalsAgainst = 0;
-      let matchesPlayed = 0;
+      let matchesPlayed = 0, goals = 0, assists = 0;      
 
       matchesList.forEach(match => {
         const isInTeamA = match.teamA?.includes(player.name);
         const isInTeamB = match.teamB?.includes(player.name);
+        const stats = match.stats?.[player.name];
+        if (stats) {
+          goals += stats.goals || 0;
+          assists += stats.assists || 0;
+        }        
 
         if (isInTeamA || isInTeamB) {
           matchesPlayed++;
@@ -71,6 +78,8 @@ const Leaderboard = () => {
         draws,
         losses,
         matchesPlayed,
+        goals,
+        assists,
         points,
         goalsFor,
         goalsAgainst,
@@ -78,6 +87,7 @@ const Leaderboard = () => {
         successRate,
         successPoints,
       };
+      
     });
   };
 

@@ -1,7 +1,8 @@
-// ✅ Home.js (DODANO prikaz dayType u karticama utakmica)
 import React, { useState, useEffect } from "react";
 import { db, collection, getDocs } from "../firebase";
 import { useHistory } from "react-router-dom";
+
+/* eslint-disable jsx-a11y/accessible-emoji */
 
 const Home = () => {
   const [matches, setMatches] = useState([]);
@@ -15,8 +16,14 @@ const Home = () => {
     const fetchMatches = async () => {
       try {
         const querySnapshot = await getDocs(collection(db, "matches"));
-        const matchList = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        const matchList = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+    
+        // Sortiranje utakmica po datumu (najnovije prve)
         matchList.sort((a, b) => new Date(b.date) - new Date(a.date));
+    
         setMatches(matchList);
       } catch (error) {
         console.error("❌ Greška pri dohvaćanju utakmica:", error);
@@ -26,7 +33,10 @@ const Home = () => {
     const fetchPlayers = async () => {
       try {
         const querySnapshot = await getDocs(collection(db, "players"));
-        const playersList = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        const playersList = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
         setPlayers(playersList);
       } catch (error) {
         console.error("❌ Greška pri dohvaćanju igrača:", error);
@@ -37,6 +47,7 @@ const Home = () => {
     fetchPlayers();
   }, []);
 
+  // Funkcija za nasumični nogometni GIF
   const getRandomFootballMeme = () => {
     const memes = [
       "https://media1.giphy.com/media/kxUhZ0TY46X1Dk48ru/giphy.gif",
@@ -47,11 +58,13 @@ const Home = () => {
     return memes[Math.floor(Math.random() * memes.length)];
   };
 
+  // Kada se klikne na igrača, postavljamo novog igrača i novi GIF
   const handlePlayerClick = (player) => {
     setSelectedPlayer(player);
     setRandomGif(getRandomFootballMeme());
   };
 
+  // **INLINE CSS STILOVI**
   const styles = {
     container: {
       maxWidth: "1000px",
@@ -113,6 +126,7 @@ const Home = () => {
 
   return (
     <div style={styles.container}>
+      {/* UTAMICE */}
       <h2>📅 Nadolazeće i Odigrane Utakmice</h2>
       <div style={styles.matchGrid}>
         {matches.length > 0 ? (
@@ -126,7 +140,6 @@ const Home = () => {
               <p>{match.teamA?.join(", ")} 🆚 {match.teamB?.join(", ")}</p>
               <p>📍 {match.location}</p>
               <p>⚽ {match.scoreA} - {match.scoreB}</p>
-              <p>📆 {match.dayType || "N/A"}</p>
             </div>
           ))
         ) : (
@@ -134,6 +147,7 @@ const Home = () => {
         )}
       </div>
 
+      {/* LISTA IGRAČA */}
       <h2>👥 Lista Igrača</h2>
       <div style={styles.playerGrid}>
         {players.length > 0 ? (
@@ -151,20 +165,47 @@ const Home = () => {
         )}
       </div>
 
+      {/* PRIKAZ STATISTIKE IGRAČA */}
       {selectedPlayer && (
         <div>
           <h3>{selectedPlayer.name} - Statistika</h3>
           <div style={styles.statsGrid}>
-            <div style={styles.statCard}><span>⚽</span><h3>{selectedPlayer.goals || 0}</h3><p>Golovi</p></div>
-            <div style={styles.statCard}><span>🎯</span><h3>{selectedPlayer.assists || 0}</h3><p>Asistencije</p></div>
-            <div style={styles.statCard}><span>🏆</span><h3>{selectedPlayer.matchesPlayed || 0}</h3><p>Odigrane Utakmice</p></div>
+            <div style={styles.statCard}>
+              <span>⚽</span>
+              <h3>{selectedPlayer.goals || 0}</h3>
+              <p>Golovi</p>
+            </div>
+            <div style={styles.statCard}>
+              <span>🎯</span>
+              <h3>{selectedPlayer.assists || 0}</h3>
+              <p>Asistencije</p>
+            </div>
+            <div style={styles.statCard}>
+              <span>🏆</span>
+              <h3>{selectedPlayer.matchesPlayed || 0}</h3>
+              <p>Odigrane Utakmice</p>
+            </div>
           </div>
 
+          {/* PROSJEK GOLOVA I ASISTENCIJA */}
           <div style={styles.statsGrid}>
-            <div style={styles.statCard}><span>📊</span><h3>{((selectedPlayer.goals || 0) / (selectedPlayer.matchesPlayed || 1)).toFixed(2)}</h3><p>Prosjek golova po utakmici</p></div>
-            <div style={styles.statCard}><span>📊</span><h3>{((selectedPlayer.assists || 0) / (selectedPlayer.matchesPlayed || 1)).toFixed(2)}</h3><p>Prosjek asistencija po utakmici</p></div>
+            <div style={styles.statCard}>
+              <span>📊</span>
+              <h3>
+                {((selectedPlayer.goals || 0) / (selectedPlayer.matchesPlayed || 1)).toFixed(2)}
+              </h3>
+              <p>Prosjek golova po utakmici</p>
+            </div>
+            <div style={styles.statCard}>
+              <span>📊</span>
+              <h3>
+                {((selectedPlayer.assists || 0) / (selectedPlayer.matchesPlayed || 1)).toFixed(2)}
+              </h3>
+              <p>Prosjek asistencija po utakmici</p>
+            </div>
           </div>
 
+          {/* RANDOM GIF */}
           <div style={styles.memeContainer}>
             <img src={randomGif} alt="Football Meme" style={styles.memeImage} />
           </div>
@@ -173,5 +214,7 @@ const Home = () => {
     </div>
   );
 };
+
+/* eslint-enable jsx-a11y/accessible-emoji */
 
 export default Home;
