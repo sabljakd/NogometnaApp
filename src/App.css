@@ -588,7 +588,8 @@ body {
     min-width: 1000px;
     width: 100%;
     border-collapse: collapse;
-}
+  }
+
   /* Maknuti lomljenje tablice u kartice */
   .leaderboard-table thead {
     display: table-header-group;
