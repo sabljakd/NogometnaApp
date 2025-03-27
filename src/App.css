@@ -564,3 +564,134 @@ body {
   justify-content: space-between;
   gap: 20px;
 }
+
+
+/* 📱 Responsive Mobile Styles */
+@media screen and (max-width: 768px) {
+  .container, .admin-container {
+    padding: 10px !important;
+  }
+
+  .form-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .leaderboard-scroll {
+    overflow-x: auto;
+    max-width: 100%;
+  }
+
+  .leaderboard-table {
+    font-size: 13px;
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .sort-buttons {
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+  }
+
+  .player-list {
+    padding-left: 0;
+  }
+
+  .player-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+
+  .match-item {
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  .auth-container {
+    padding: 20px;
+    margin: 20px auto;
+  }
+
+  .leaderboard-table thead {
+    display: none;
+  }
+
+  .leaderboard-table tr {
+    display: block;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #ccc;
+  }
+
+  .leaderboard-table td {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 10px;
+    font-size: 14px;
+  }
+
+  .mvp-box {
+    font-size: 14px;
+    padding: 12px;
+  }
+
+  .stat-card {
+    font-size: 13px;
+    padding: 10px;
+  }
+
+  .navbar h1 {
+    font-size: 1.2rem;
+  }
+
+  .navbar a {
+    font-size: 14px;
+    margin: 0 8px;
+  }
+}
+
+.hamburger {
+  display: none;
+  font-size: 26px;
+  cursor: pointer;
+  color: white;
+}
+
+.navbar-links {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+@media (max-width: 768px) {
+  .hamburger {
+    display: block;
+  }
+
+  .navbar-links {
+    display: none;
+    flex-direction: column;
+    position: absolute;
+    top: 60px;
+    left: 0;
+    background-color: #007bff;
+    width: 100%;
+    padding: 10px 0;
+    z-index: 100;
+  }
+
+  .navbar-links.open {
+    display: flex;
+  }
+
+  .navbar-links a, .navbar-links button {
+    color: white;
+    padding: 10px 20px;
+    border-bottom: 1px solid #0056b3;
+    width: 100%;
+    text-align: center;
+  }
+}
