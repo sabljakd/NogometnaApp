@@ -567,7 +567,7 @@ body {
 
 
 /* 📱 Responsive Mobile Styles */
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 500px) {
   .container, .admin-container {
     padding: 10px !important;
   }
@@ -578,18 +578,35 @@ body {
     gap: 12px;
   }
 
-  .leaderboard-scroll {
+  .scroll-container {
     overflow-x: auto;
-    max-width: 100%;
+    width: 100%;
   }
 
   .leaderboard-table {
-    font-size: 13px;
-    display: block;
-    width: 100%;
-    overflow-x: auto;
+    min-width: 1000px;
+    border-collapse: collapse;
   }
 
+  /* Maknuti lomljenje tablice u kartice */
+  .leaderboard-table thead {
+    display: table-header-group;
+  }
+
+  .leaderboard-table tr,
+  .leaderboard-table td {
+    display: table-row;
+    text-align: center;
+    padding: 8px;
+  }
+
+  .leaderboard-table tr,
+  .leaderboard-table td {
+    white-space: nowrap; /* 🔑 Sprječava da se sadržaj lomi u 2 reda */
+    padding: 8px;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+  }
   .sort-buttons {
     flex-direction: column;
     gap: 8px;
@@ -616,23 +633,6 @@ body {
     margin: 20px auto;
   }
 
-  .leaderboard-table thead {
-    display: none;
-  }
-
-  .leaderboard-table tr {
-    display: block;
-    margin-bottom: 15px;
-    border-bottom: 1px solid #ccc;
-  }
-
-  .leaderboard-table td {
-    display: flex;
-    justify-content: space-between;
-    padding: 6px 10px;
-    font-size: 14px;
-  }
-
   .mvp-box {
     font-size: 14px;
     padding: 12px;
@@ -653,6 +653,7 @@ body {
   }
 }
 
+/* Hamburger meni */
 .hamburger {
   display: none;
   font-size: 26px;
@@ -687,7 +688,8 @@ body {
     display: flex;
   }
 
-  .navbar-links a, .navbar-links button {
+  .navbar-links a,
+  .navbar-links button {
     color: white;
     padding: 10px 20px;
     border-bottom: 1px solid #0056b3;
