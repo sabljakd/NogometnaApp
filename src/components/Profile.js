@@ -17,7 +17,17 @@ const Profile = ({ user }) => {
     // 🔄 Postavljamo real-time slušatelja na dokument igrača
     const unsubscribe = onSnapshot(playerRef, (playerSnap) => {
       if (playerSnap.exists()) {
-        setPlayerStats(playerSnap.data());
+        
+        const data = playerSnap.data();
+        const stats = data.stats || {};
+        const mergedStats = Object.values(stats).reduce((acc, day) => {
+          acc.goals += day.goals || 0;
+          acc.assists += day.assists || 0;
+          acc.matchesPlayed += day.matchesPlayed || 0;
+          return acc;
+        }, { goals: 0, assists: 0, matchesPlayed: 0 });
+        setPlayerStats({ ...data, mergedStats });
+    
       } else {
         console.warn("⚠ Igrač nije pronađen u Firestore-u!");
         setPlayerStats(null);
@@ -33,14 +43,14 @@ const Profile = ({ user }) => {
 
   // Izračun prosjeka
   const totalMatches = playerStats.matchesPlayed || 1;
-  const avgGoals = (playerStats.goals || 0) / totalMatches;
-  const avgAssists = (playerStats.assists || 0) / totalMatches;
+  const avgGoals = (playerStats.mergedStats?.goals || 0) / totalMatches;
+  const avgAssists = (playerStats.mergedStats?.assists || 0) / totalMatches;
 
   // Podaci za grafikon
   const chartData = [
-    { name: "Golovi", value: playerStats.goals || 0, fill: "#007bff" },
-    { name: "Asistencije", value: playerStats.assists || 0, fill: "#28a745" },
-    { name: "Utakmice", value: playerStats.matchesPlayed || 0, fill: "#ffc107" },
+    { name: "Golovi", value: playerStats.mergedStats?.goals || 0, fill: "#007bff" },
+    { name: "Asistencije", value: playerStats.mergedStats?.assists || 0, fill: "#28a745" },
+    { name: "Utakmice", value: playerStats.mergedStats?.matchesPlayed || 0, fill: "#ffc107" },
   ];
 
   return (
@@ -55,17 +65,17 @@ const Profile = ({ user }) => {
       <div className="stats-grid">
         <div className="stat-card">
           <span role="img" aria-label="goal">⚽</span>
-          <h3>{playerStats.goals || 0}</h3>
+          <h3>{playerStats.mergedStats?.goals || 0}</h3>
           <p>Golovi</p>
         </div>
         <div className="stat-card">
           <span role="img" aria-label="assist">🎯</span>
-          <h3>{playerStats.assists || 0}</h3>
+          <h3>{playerStats.mergedStats?.assists || 0}</h3>
           <p>Asistencije</p>
         </div>
         <div className="stat-card">
           <span role="img" aria-label="games">🏆</span>
-          <h3>{playerStats.matchesPlayed || 0}</h3>
+          <h3>{playerStats.mergedStats?.matchesPlayed || 0}</h3>
           <p>Odigrane Utakmice</p>
         </div>
       </div>
