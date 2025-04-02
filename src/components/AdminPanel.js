@@ -137,11 +137,25 @@ const AdminPanel = ({ user }) => {
 
         const dailyStats = statsMap[name] || {};
 
-        await updateDoc(playerRef, {
-          stats: dailyStats
+        // ✅ Zbrajanje ukupnih vrijednosti
+        let totalGoals = 0;
+        let totalAssists = 0;
+        let totalMatches = 0;
+
+        Object.values(dailyStats).forEach(day => {
+          totalGoals += day.goals || 0;
+          totalAssists += day.assists || 0;
+          totalMatches += day.matchesPlayed || 0;
         });
 
-        console.log(`📅 Statistika po danima ažurirana za ${name}`);
+        await updateDoc(playerRef, {
+          stats: dailyStats,
+          goals: totalGoals,
+          assists: totalAssists,
+          matchesPlayed: totalMatches
+        });
+
+        console.log(`📅 Statistika po danima + ukupno ažurirana za ${name}`);
       }
 
       alert("📊 Statistika po danima uspješno ažurirana!");
