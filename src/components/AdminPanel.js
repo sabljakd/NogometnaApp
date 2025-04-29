@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
-import { db, collection, getDocs, addDoc, updateDoc, doc } from '../firebase';
+import { db, collection, getDocs, addDoc, updateDoc, doc, setDoc, deleteDoc } from '../firebase';
 import '../App.css';
 
 /* eslint-disable jsx-a11y/accessible-emoji */
@@ -32,6 +33,56 @@ const AdminPanel = ({ user }) => {
     return <p>Nemate ovlasti za pristup ovoj stranici.</p>;
   }
 
+  const handleArchiveSeason = async () => {
+    try {
+      const playersSnapshot = await getDocs(collection(db, "players"));
+      const matchesSnapshot = await getDocs(collection(db, "matches"));
+
+      for (const playerDoc of playersSnapshot.docs) {
+        const playerData = playerDoc.data();
+        await setDoc(doc(db, "players_sezona1", playerDoc.id), playerData);
+      }
+
+      for (const matchDoc of matchesSnapshot.docs) {
+        const matchData = matchDoc.data();
+        await setDoc(doc(db, "matches_sezona1", matchDoc.id), matchData);
+      }
+
+      alert("✅ Arhiviranje sezone je uspješno završeno!");
+    } catch (error) {
+      console.error("❌ Greška pri arhiviranju sezone:", error);
+      alert("❌ Greška pri arhiviranju. Pogledaj konzolu.");
+    }
+  };
+
+  const handleResetSeason = async () => {
+    if (!window.confirm("Jeste li sigurni da želite resetirati sezonu?")) return;
+    try {
+      const playersSnapshot = await getDocs(collection(db, "players"));
+      const matchesSnapshot = await getDocs(collection(db, "matches"));
+
+      for (const playerDoc of playersSnapshot.docs) {
+        const playerRef = doc(db, "players", playerDoc.id);
+        await updateDoc(playerRef, {
+          goals: 0,
+          assists: 0,
+          matchesPlayed: 0,
+          stats: {},
+        });
+      }
+
+      for (const matchDoc of matchesSnapshot.docs) {
+        const matchRef = doc(db, "matches", matchDoc.id);
+        await deleteDoc(matchRef);
+      }
+
+      alert("✅ Resetiranje sezone je uspješno završeno!");
+    } catch (error) {
+      console.error("❌ Greška pri resetiranju sezone:", error);
+      alert("❌ Greška pri resetiranju. Pogledaj konzolu.");
+    }
+  };
+
   const updateStats = async () => {
     if (!selectedPlayer) return;
 
@@ -52,19 +103,18 @@ const AdminPanel = ({ user }) => {
     }
 
     try {
-      
-    const dayOfWeek = new Date(date).toLocaleDateString('hr-HR', {
-      weekday: 'long'
-    }).toLowerCase();
+      const dayOfWeek = new Date(date).toLocaleDateString('hr-HR', {
+        weekday: 'long'
+      }).toLowerCase();
 
-    await addDoc(collection(db, "matches"), {
-      date,
-      time,
-      location,
-      day: dayOfWeek,
-      players: []
-    });
-    
+      await addDoc(collection(db, "matches"), {
+        date,
+        time,
+        location,
+        day: dayOfWeek,
+        players: []
+      });
+
       alert("Utakmica dodana!");
       setDate('');
       setTime('');
@@ -93,7 +143,6 @@ const AdminPanel = ({ user }) => {
     }
   };
 
-  
   const rebuildPlayerDailyStats = async () => {
     try {
       const matchesSnapshot = await getDocs(collection(db, "matches"));
@@ -122,11 +171,10 @@ const AdminPanel = ({ user }) => {
           }
 
           const goals = Number(playerStats[playerName]?.goals) || 0;
-          const assists = Number(playerStats[playerName]?.assists) || 0;          
+          const assists = Number(playerStats[playerName]?.assists) || 0;
 
           statsMap[playerName][dayName].goals += goals;
           statsMap[playerName][dayName].assists += assists;
-          
           statsMap[playerName][dayName].matchesPlayed += 1;
         });
       });
@@ -137,7 +185,6 @@ const AdminPanel = ({ user }) => {
 
         const dailyStats = statsMap[name] || {};
 
-        // ✅ Zbrajanje ukupnih vrijednosti
         let totalGoals = 0;
         let totalAssists = 0;
         let totalMatches = 0;
@@ -167,36 +214,39 @@ const AdminPanel = ({ user }) => {
   const rebuildMatchDays = async () => {
     try {
       const matchesSnapshot = await getDocs(collection(db, "matches"));
-  
+
       for (const matchDoc of matchesSnapshot.docs) {
         const matchData = matchDoc.data();
         const matchRef = doc(db, "matches", matchDoc.id);
-  
+
         if (matchData.date) {
           const day = new Date(matchData.date).toLocaleDateString("hr-HR", {
             weekday: "long",
           }).toLowerCase();
-  
+
           await updateDoc(matchRef, {
             day: day
           });
-  
+
           console.log(`✅ Match ${matchDoc.id} - day: ${day}`);
         }
       }
-  
+
       alert("📅 Dan u tjednu (day) uspješno dodan svim utakmicama!");
     } catch (error) {
       console.error("❌ Greška prilikom dodavanja day polja u matches:", error);
     }
   };
-  
 
   return (
     <div className="admin-container">
       <h2>⚙ Admin Panel</h2>
 
-      {/* Sekcija za dodavanje utakmica */}
+      <div style={{ marginBottom: '20px' }}>
+        <button onClick={handleArchiveSeason} className="archive-button">📦 Arhiviraj sezonu</button>
+        <button onClick={handleResetSeason} className="reset-button">🔄 Resetiraj sezonu</button>
+      </div>
+
       <div className="admin-section">
         <h3>➕ Dodaj novu utakmicu</h3>
         <form onSubmit={addMatch} className="form-grid">
@@ -216,7 +266,6 @@ const AdminPanel = ({ user }) => {
         </form>
       </div>
 
-      {/* Sekcija za ažuriranje statistike igrača */}
       <div className="admin-section">
         <h3>🛠 Uređivanje statistike igrača</h3>
         <div className="form-grid">
@@ -248,12 +297,10 @@ const AdminPanel = ({ user }) => {
           ♻️ Rebuild statistike po danima
         </button>
         <button onClick={rebuildMatchDays}>
-  🔁 Dodaj dan (day) svim utakmicama
-</button>
-
+          🔁 Dodaj dan (day) svim utakmicama
+        </button>
       </div>
 
-      {/* Pregled svih igrača */}
       <div className="admin-section">
         <h3>📋 Pregled registriranih igrača</h3>
         <ul className="player-list">
