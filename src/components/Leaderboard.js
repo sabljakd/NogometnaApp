@@ -6,7 +6,7 @@ import '../App.css';
 const Leaderboard = () => {
   const [players, setPlayers] = useState([]);
   const [sortedPlayers, setSortedPlayers] = useState([]);
-  const [sortType, setSortType] = useState('points');
+  const [sortType, setSortType] = useState('mvpPoints');
   const [dayFilter, setDayFilter] = useState("sve");
   const [mvp, setMvp] = useState(null);
 
@@ -91,6 +91,8 @@ const Leaderboard = () => {
       const successRate = matchesPlayed > 0 ? ((wins / matchesPlayed) * 100).toFixed(1) + "%" : "0%";
       const points = wins * 3 + draws * 2 + losses;
       const successPoints = ((parseFloat(successRate) / 100) * points).toFixed(1);
+      const goalDifference = goalsFor - goalsAgainst;
+      const mvpPoints = (goals) + (assists * 0.5) + (wins * 3) + (goalDifference * 0.5);
 
       return {
         ...player,
@@ -106,6 +108,7 @@ const Leaderboard = () => {
         goalDifference: goalsFor - goalsAgainst,
         successRate,
         successPoints,
+        mvpPoints: mvpPoints.toFixed(1),
       };
       
     });
@@ -185,7 +188,7 @@ const Leaderboard = () => {
                   <td>{player.assists || 0}</td>
                   <td>{player.successPoints || 0}</td>
                   <td>{player.successRate || "0%"}</td>
-                  <td>{player.points || 0}</td>
+                  <td>{player.mvpPoints || 0}</td>
                   <td>{player.goalDifference || 0}</td>
                   <td>{player.goalsFor || 0}</td>
                   <td>{player.goalsAgainst || 0}</td>

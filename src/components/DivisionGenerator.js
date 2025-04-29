@@ -35,7 +35,7 @@ const DivisionGenerator = () => {
   const calculateStats = (playersList, matchesList) => {
     return playersList.map(player => {
       let wins = 0, draws = 0, losses = 0, goalsFor = 0, goalsAgainst = 0;
-      let matchesPlayed = 0, goals = 0, assists = 0;
+      let matchesPlayed = 0, goals = 0, assists = 0;      
 
       matchesList.forEach(match => {
         const isInTeamA = match.teamA?.includes(player.name);
@@ -44,7 +44,7 @@ const DivisionGenerator = () => {
         if (stats) {
           goals += stats.goals || 0;
           assists += stats.assists || 0;
-        }
+        }        
 
         if (isInTeamA || isInTeamB) {
           matchesPlayed++;
@@ -64,6 +64,8 @@ const DivisionGenerator = () => {
       const successRate = matchesPlayed > 0 ? ((wins / matchesPlayed) * 100).toFixed(1) + "%" : "0%";
       const points = wins * 3 + draws * 2 + losses;
       const successPoints = ((parseFloat(successRate) / 100) * points).toFixed(1);
+      const goalDifference = goalsFor - goalsAgainst;
+      const mvpPoints = (goals) + (assists * 0.5) + (wins * 3) + (goalDifference * 0.5);
 
       return {
         ...player,
@@ -79,7 +81,9 @@ const DivisionGenerator = () => {
         goalDifference: goalsFor - goalsAgainst,
         successRate,
         successPoints,
+        mvpPoints: mvpPoints.toFixed(1),
       };
+      
     });
   };
 
@@ -89,7 +93,7 @@ const DivisionGenerator = () => {
       const matchesData = matchesSnapshot.docs.map(doc => doc.data());
 
       const updatedSelected = calculateStats(selectedPlayers, matchesData);
-      const sortedSelected = updatedSelected.sort((a, b) => (b.points || 0) - (a.points || 0));
+      const sortedSelected = updatedSelected.sort((a, b) => (b.mvpPoints || 0) - (a.mvpPoints || 0));
 
       let teamAList = [];
       let teamBList = [];
