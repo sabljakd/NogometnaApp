@@ -12,7 +12,7 @@ const DivisionGenerator = () => {
       try {
         const querySnapshot = await getDocs(collection(db, "players"));
         let playersList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        
+
         // Sort players by ranking (default sorting by points, descending)
         playersList.sort((a, b) => (b.points || 0) - (a.points || 0));
         setPlayers(playersList);
@@ -32,25 +32,82 @@ const DivisionGenerator = () => {
     }
   };
 
-  const generateTeams = () => {
-    let teamAList = [];
-    let teamBList = [];
-    
-    // Sort only the selected players by their ranking
-    let sortedSelectedPlayers = [...selectedPlayers].sort((a, b) => (b.points || 0) - (a.points || 0));
-    
-    // Apply the correct pattern for team division
-    sortedSelectedPlayers.forEach((player, index) => {
-      const modIndex = index % 10;
-      if ([0, 3, 4, 7, 8].includes(modIndex)) {
-        teamAList.push(player);
-      } else {
-        teamBList.push(player);
-      }
+  const calculateStats = (playersList, matchesList) => {
+    return playersList.map(player => {
+      let wins = 0, draws = 0, losses = 0, goalsFor = 0, goalsAgainst = 0;
+      let matchesPlayed = 0, goals = 0, assists = 0;
+
+      matchesList.forEach(match => {
+        const isInTeamA = match.teamA?.includes(player.name);
+        const isInTeamB = match.teamB?.includes(player.name);
+        const stats = match.stats?.[player.name];
+        if (stats) {
+          goals += stats.goals || 0;
+          assists += stats.assists || 0;
+        }
+
+        if (isInTeamA || isInTeamB) {
+          matchesPlayed++;
+          const isTeamA = isInTeamA;
+          const teamGoals = isTeamA ? match.scoreA : match.scoreB;
+          const opponentGoals = isTeamA ? match.scoreB : match.scoreA;
+
+          goalsFor += teamGoals;
+          goalsAgainst += opponentGoals;
+
+          if (teamGoals > opponentGoals) wins++;
+          else if (teamGoals < opponentGoals) losses++;
+          else draws++;
+        }
+      });
+
+      const successRate = matchesPlayed > 0 ? ((wins / matchesPlayed) * 100).toFixed(1) + "%" : "0%";
+      const points = wins * 3 + draws * 2 + losses;
+      const successPoints = ((parseFloat(successRate) / 100) * points).toFixed(1);
+
+      return {
+        ...player,
+        wins,
+        draws,
+        losses,
+        matchesPlayed,
+        goals,
+        assists,
+        points,
+        goalsFor,
+        goalsAgainst,
+        goalDifference: goalsFor - goalsAgainst,
+        successRate,
+        successPoints,
+      };
     });
-    
-    setTeamA(teamAList);
-    setTeamB(teamBList);
+  };
+
+  const generateTeams = async () => {
+    try {
+      const matchesSnapshot = await getDocs(collection(db, "matches"));
+      const matchesData = matchesSnapshot.docs.map(doc => doc.data());
+
+      const updatedSelected = calculateStats(selectedPlayers, matchesData);
+      const sortedSelected = updatedSelected.sort((a, b) => (b.points || 0) - (a.points || 0));
+
+      let teamAList = [];
+      let teamBList = [];
+      const pattern = "abbaabbaabbaabba";
+
+      sortedSelected.forEach((player, index) => {
+        if (pattern[index % pattern.length] === 'a') {
+          teamAList.push(player);
+        } else {
+          teamBList.push(player);
+        }
+      });
+
+      setTeamA(teamAList);
+      setTeamB(teamBList);
+    } catch (error) {
+      console.error("❌ Greška pri generiranju timova:", error);
+    }
   };
 
   return (
@@ -72,7 +129,7 @@ const DivisionGenerator = () => {
         ))}
       </div>
       <button onClick={generateTeams} style={styles.generateBtn}>Generate Teams</button>
-      
+
       {teamA.length > 0 && teamB.length > 0 && (
         <div style={styles.teamsContainer}>
           <div style={styles.team}>
