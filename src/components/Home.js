@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { db, collection, getDocs } from "../firebase";
 import { useHistory } from "react-router-dom";
@@ -7,6 +8,7 @@ import { useHistory } from "react-router-dom";
 const Home = () => {
   const [matches, setMatches] = useState([]);
   const [players, setPlayers] = useState([]);
+  const [playersSeason1, setPlayersSeason1] = useState([]);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [randomGif, setRandomGif] = useState("");
 
@@ -20,10 +22,8 @@ const Home = () => {
           id: doc.id,
           ...doc.data(),
         }));
-    
-        // Sortiranje utakmica po datumu (najnovije prve)
+
         matchList.sort((a, b) => new Date(b.date) - new Date(a.date));
-    
         setMatches(matchList);
       } catch (error) {
         console.error("❌ Greška pri dohvaćanju utakmica:", error);
@@ -43,11 +43,21 @@ const Home = () => {
       }
     };
 
+    const fetchSeason1Players = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "players_sezona1"));
+        const playerList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setPlayersSeason1(playerList);
+      } catch (error) {
+        console.error("❌ Greška pri dohvaćanju arhive igrača:", error);
+      }
+    };
+
     fetchMatches();
     fetchPlayers();
+    fetchSeason1Players();
   }, []);
 
-  // Funkcija za nasumični nogometni GIF
   const getRandomFootballMeme = () => {
     const memes = [
       "https://media1.giphy.com/media/kxUhZ0TY46X1Dk48ru/giphy.gif",
@@ -58,13 +68,18 @@ const Home = () => {
     return memes[Math.floor(Math.random() * memes.length)];
   };
 
-  // Kada se klikne na igrača, postavljamo novog igrača i novi GIF
   const handlePlayerClick = (player) => {
     setSelectedPlayer(player);
     setRandomGif(getRandomFootballMeme());
   };
 
-  // **INLINE CSS STILOVI**
+  const scrollToArchive = () => {
+    const archiveSection = document.getElementById('archive');
+    if (archiveSection) {
+      archiveSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   const styles = {
     container: {
       maxWidth: "1000px",
@@ -122,11 +137,36 @@ const Home = () => {
       height: "auto",
       borderRadius: "8px",
     },
+    archiveButton: {
+      marginTop: "20px",
+      padding: "10px 20px",
+      backgroundColor: "#007bff",
+      color: "white",
+      border: "none",
+      borderRadius: "8px",
+      cursor: "pointer",
+      fontWeight: "bold",
+      fontSize: "16px",
+    },
+    leaderboardTable: {
+      width: "100%",
+      minWidth: "1200px",
+      overflowX: "auto",
+      marginTop: "30px",
+      borderCollapse: "collapse",
+    },
+    leaderboardContainer: {
+      overflowX: "auto",
+    },
   };
 
   return (
     <div style={styles.container}>
-      {/* UTAMICE */}
+      <h2>🏟 Dobrodošli na Nogometnu Aplikaciju</h2>
+      <button style={styles.archiveButton} onClick={scrollToArchive}>
+        📚 Pogledaj Arhivu Sezona
+      </button>
+
       <h2>📅 Nadolazeće i Odigrane Utakmice</h2>
       <div style={styles.matchGrid}>
         {matches.length > 0 ? (
@@ -147,7 +187,6 @@ const Home = () => {
         )}
       </div>
 
-      {/* LISTA IGRAČA */}
       <h2>👥 Lista Igrača</h2>
       <div style={styles.playerGrid}>
         {players.length > 0 ? (
@@ -165,7 +204,6 @@ const Home = () => {
         )}
       </div>
 
-      {/* PRIKAZ STATISTIKE IGRAČA */}
       {selectedPlayer && (
         <div>
           <h3>{selectedPlayer.name} - Statistika</h3>
@@ -187,7 +225,6 @@ const Home = () => {
             </div>
           </div>
 
-          {/* PROSJEK GOLOVA I ASISTENCIJA */}
           <div style={styles.statsGrid}>
             <div style={styles.statCard}>
               <span>📊</span>
@@ -205,12 +242,51 @@ const Home = () => {
             </div>
           </div>
 
-          {/* RANDOM GIF */}
           <div style={styles.memeContainer}>
             <img src={randomGif} alt="Football Meme" style={styles.memeImage} />
           </div>
         </div>
       )}
+
+      {/* 📚 Arhiva Sezona 1 */}
+      <div id="archive" style={{ marginTop: '60px' }}>
+        <h2>📚 Arhiva Sezona 1</h2>
+        <div style={styles.leaderboardContainer}>
+          <table style={styles.leaderboardTable}>
+            <thead>
+              <tr>
+                <th>#</th><th>Igrač</th><th>Golovi</th><th>Asistencije</th><th>Uspješnost x Bodovi</th><th>Uspješnost</th><th>Bodovi</th><th>Gol Razlika</th><th>Post. Golovi</th><th>Prim. Golovi</th><th>W</th><th>D</th><th>L</th><th>P</th>
+              </tr>
+            </thead>
+            <tbody>
+              {playersSeason1.length > 0 ? (
+                playersSeason1
+                  .sort((a, b) => (b.points || 0) - (a.points || 0))
+                  .map((player, index) => (
+                    <tr key={player.id}>
+                      <td>{index + 1}</td>
+                      <td>{player.name}</td>
+                      <td>{player.goals || 0}</td>
+                      <td>{player.assists || 0}</td>
+                      <td>{player.successPoints || 0}</td>
+                      <td>{player.successRate || "0%"}</td>
+                      <td>{player.points || 0}</td>
+                      <td>{player.goalDifference || 0}</td>
+                      <td>{player.goalsFor || 0}</td>
+                      <td>{player.goalsAgainst || 0}</td>
+                      <td>{player.wins || 0}</td>
+                      <td>{player.draws || 0}</td>
+                      <td>{player.losses || 0}</td>
+                      <td>{player.matchesPlayed || 0}</td>
+                    </tr>
+                  ))
+              ) : (
+                <tr><td colSpan="14">Nema arhiviranih podataka.</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 };
